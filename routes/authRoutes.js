@@ -49,7 +49,7 @@ router.post("/login", async (req, res) => {
     //GENERATE JWT TOKEN
     const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: '72h'})
 
-    res.json({token})
+    res.json({user,token})
 
   } catch (error) {
     res.status(500).json({ message: 'Unable to login' })
