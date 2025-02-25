@@ -41,22 +41,22 @@ router.post("/login", async (req, res) => {
     }
 
     //COMPARE PASSWORDS
-    const isMatch = await bcrypt.compare(password, user.password)
-    if(!isMatch){
-        return res.status(400).json( {message:'Invalid Credentials !'} )
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid Credentials !" });
     }
 
     //GENERATE JWT TOKEN
-    const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: '72h'})
+    const token = jwt.sign(
+      { id: user._id, fullname: user.fullname },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    res.json({user,token})
-
+    res.json({ token, user: { id: user._id, fullname: user.fullname } });
   } catch (error) {
-    res.status(500).json({ message: 'Unable to login' })
+    res.status(500).json({ message: "Unable to login" });
   }
 });
 
-
-
-
-module.exports = router
+module.exports = router;

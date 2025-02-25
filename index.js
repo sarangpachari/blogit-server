@@ -4,6 +4,9 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const connectDB = require("./database/db");
 const authRoutes = require("./routes/authRoutes");
+const postRoutes = require("./routes/postRoutes");
+const multer = require("multer");
+const path = require("path");
 
 dotenv.config();
 
@@ -16,9 +19,11 @@ const app = express();
 //MIDDLEWARE
 app.use(cors());
 app.use(bodyParser.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 //ROUTES
 app.use("/api/auth", authRoutes);
+app.use("/api/posts", postRoutes)
 
 const PORT = process.env.PORT || 3000;
 
