@@ -50,4 +50,15 @@ router.get("/", async(req,res)=>{
   }
 })
 
+//REMOVE POSTS
+router.delete("/:id/remove",authMiddleware, async(req,res)=>{
+  const {id} = req.params
+  try {
+    const removePost = await Post.findByIdAndDelete({_id:id})
+    res.status(200).json(removePost)
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
 module.exports = router;
