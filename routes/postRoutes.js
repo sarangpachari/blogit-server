@@ -42,7 +42,7 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
 //GET ALL POSTS
 router.get("/", async(req,res)=>{
   try {
-    const posts = await Post.find().sort({created: -1})
+    const posts = await Post.find({ isPrivate: false }).sort({created: -1})
     res.status(200).json(posts)
   } catch (error) {
     console.error(error)
