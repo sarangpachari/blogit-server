@@ -103,4 +103,60 @@ router.put(
   }
 );
 
+//LIKE POSTS
+router.put("/:id/like", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const post = await Post.findById(id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    if (post.likedBy.includes(userId)) {
+      return res
+        .status(400)
+        .json({ error: "You have already liked this post" });
+    }
+
+    post.likedBy.push(userId);
+    post.likeCount += 1;
+
+    await post.save();
+
+    res.json({
+      message: "Post liked successfully",
+      likeCount: post.likeCount,
+    });
+  } catch (error) {
+    console.error("Error liking post:", error);
+    res.status(500).json({ error: "Server error while liking post" });
+  }
+});
+
+router.put("/:id/unlike", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const post = await Post.findById(id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    
+    if (!post.likedBy.includes(userId)) {
+      return res.status(400).json({ error: "You haven't liked this post yet" });
+    }
+
+    
+    post.likedBy = post.likedBy.filter((uid) => uid.toString() !== userId);
+    post.likeCount = Math.max(post.likeCount - 1, 0); 
+
+    await post.save();
+
+    res.json({ message: "Post unliked successfully", likeCount: post.likeCount });
+  } catch (error) {
+    console.error("Error unliking post:", error);
+    res.status(500).json({ error: "Server error while unliking post" });
+  }
+});
+
 module.exports = router;
