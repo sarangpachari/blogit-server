@@ -133,6 +133,7 @@ router.put("/:id/like", authMiddleware, async (req, res) => {
   }
 });
 
+//UNLIKE POSTS
 router.put("/:id/unlike", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -141,21 +142,91 @@ router.put("/:id/unlike", authMiddleware, async (req, res) => {
     const post = await Post.findById(id);
     if (!post) return res.status(404).json({ error: "Post not found" });
 
-    
     if (!post.likedBy.includes(userId)) {
       return res.status(400).json({ error: "You haven't liked this post yet" });
     }
 
-    
     post.likedBy = post.likedBy.filter((uid) => uid.toString() !== userId);
-    post.likeCount = Math.max(post.likeCount - 1, 0); 
+    post.likeCount = Math.max(post.likeCount - 1, 0);
 
     await post.save();
 
-    res.json({ message: "Post unliked successfully", likeCount: post.likeCount });
+    res.json({
+      message: "Post unliked successfully",
+      likeCount: post.likeCount,
+    });
   } catch (error) {
     console.error("Error unliking post:", error);
     res.status(500).json({ error: "Server error while unliking post" });
+  }
+});
+
+//GET A SINGLE POST DETAILS
+router.get("/postView/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    } else {
+      res.status(200).json(post);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+//COMMENT POST
+router.post("/postView/:id/comment", authMiddleware, async (req, res) => {
+  try {
+    const { commentText } = req.body;
+    const userId = req.user.id;
+    const userFullName = req.user.fullname;
+
+    if (!commentText) {
+      return res.status(400).json({ message: "Comment cannot be empty." });
+    }
+
+    const newComment = {
+      userId,
+      userFullName,
+      commentText,
+      createdAt: new Date(),
+    };
+
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    post.comments.push(newComment);
+    await post.save();
+
+    res
+      .status(201)
+      .json({ message: "Comment added successfully", comment: newComment });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//FETCH ALL COMMENTS OF THE POST
+router.get("/postView/:id/comment", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id).populate(
+      "comments.userId",
+      "fullName"
+    );
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json(post.comments);
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
