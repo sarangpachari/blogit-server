@@ -50,6 +50,20 @@ router.get("/", async (req, res) => {
   }
 });
 
+//GET ALL BLOGS AND SEARCH
+router.get("/all-blog", authMiddleware, async (req, res) => {
+  const searchKey = req.query.search;
+  const query = searchKey
+    ? { title: { $regex: searchKey, $options: "i" } }
+    : {};
+  try {
+    const allPosts = await Post.find(query);
+    res.status(200).json(allPosts);
+  } catch (error) {
+    res.status(401).json(error);
+  }
+});
+
 //REMOVE POSTS
 router.delete("/:id/remove", authMiddleware, async (req, res) => {
   const { id } = req.params;
@@ -165,7 +179,7 @@ router.put("/:id/unlike", authMiddleware, async (req, res) => {
 router.get("/postView/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const post = await Post.findById(id);
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
